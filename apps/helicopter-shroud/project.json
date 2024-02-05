@@ -1,0 +1,8 @@
+{
+  "name": "helicopter-shroud",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/helicopter-shroud/src",
+  "projectType": "application",
+  "targets": {},
+  "tags": []
+}
