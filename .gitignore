@@ -84,3 +84,14 @@ yarn-error.log*
 !.yarn/plugins
 .pnp.*
 .env
+
+.vscode
+.DS_Store
+
+cache
+out
+proofs
+broadcast
+.env
+plonk_vk.sol
+circuits/target/*
