@@ -1,4 +1,4 @@
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.23;
 
 import "forge-std/Script.sol";
 import "circuits/contract/with_foundry/plonk_vk.sol";

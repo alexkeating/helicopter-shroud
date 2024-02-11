@@ -1,8 +1,9 @@
 [profile.default]
 evm_version = "paris"
 optimizer = true
+remappings = ["stealth-address-erc-contracts/=lib/stealth-address-erc-contracts/src"]
 optimizer_runs = 10_000_000
-solc_version = "0.8.20"
+solc_version = "0.8.23"
 verbosity = 3
 fs_permissions = [{ access = "read-write", path = "./"},{ access = "read-write", path = "/tmp/"}]
 ffi = true

@@ -1,26 +1,30 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-import NxWelcome from './NxWelcome';
 
 import '@rainbow-me/rainbowkit/styles.css';
 import { getDefaultWallets, RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
-import { goerli, optimismGoerli, mainnet } from 'wagmi/chains';
+import { ChakraProvider } from '@chakra-ui/react'
+import { goerli, optimismGoerli, mainnet, localhost } from 'wagmi/chains';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
+import { jsonRpcProvider } from '@wagmi/core/providers/jsonRpc'
 
 
-export const chainsConfig = [goerli, optimismGoerli, mainnet];
+import Main from "./Content"
+
+
+export const chainsConfig = [goerli];
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(chainsConfig, [
-  alchemyProvider({ apiKey: import.meta.env.NEXT_PUBLIC_ALCHEMY_API_KEY! }),
+  alchemyProvider({ apiKey: "N-FhxXSm1VS-mvRdeMXsKQ4hC621rqMq" }),
   publicProvider(),
 ]);
 
 
 const { connectors } = getDefaultWallets({
   appName: 'L2 Flexible Voting',
-  projectId: String(import.meta.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID),
+  projectId: String(import.meta.env.PUBLIC_WALLET_CONNECT_PROJECT_ID),
   chains,
 });
 
@@ -41,9 +45,9 @@ export function App() {
           overlayBlur: 'small',
         })}
       >
-        <div>
-          <NxWelcome title="helicopter-shroud" />
-        </div>
+        <ChakraProvider>
+          <Main />
+        </ChakraProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );
