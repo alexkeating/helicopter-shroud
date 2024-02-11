@@ -1,0 +1,1 @@
+{"debug_symbols":[{"locations":{"0":[{"span":{"start":47,"end":53},"file":1}]}}],"file_map":{"1":{"source":"fn main(x : Field, y : pub Field) {\n    assert(x == y);\n}\n","path":"/home/keating/programming/open-source/helicopter-shroud/apps/contracts/circuits/src/main.nr"}},"warnings":[]}
