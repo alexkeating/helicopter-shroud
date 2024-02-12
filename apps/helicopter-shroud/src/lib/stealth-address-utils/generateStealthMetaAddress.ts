@@ -40,31 +40,31 @@ import { sha256, http, Chain, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
 import {
-  CURVE
+  getPublicKey,
+  etc
 } from '@noble/secp256k1';
 
-export const generateKeys = (network: Chain, signature: string) => {
+export const generateKeys = (signature: string) => {
+            if (!signature || !signature.length) {
+              return null
+            }
+            // https://github.com/nerolation/stealth-wallet/blob/92e3448dcbaf7d94ca7463afa8ecd0f44dc74e2f/scripts/website_logic.js#L254
             const sig1 = signature.slice(2, 66);
             const sig2 = signature.slice(66, 130);
             console.log(sig1);
             console.log(sig2);
-            const hashedV = sha256(("0x" + sig1) as `0x${string}`);
+            const hashedV = sha256(("0x" + sig1) as `0x${string}`); // hashedV
             const hashedR = sha256(("0x" + sig2) as `0x${string}`);
-            const privateKey1 = BigInt(hashedV) % CURVE.n;
-            const privateKey2 = BigInt(hashedR) % CURVE.n;
-            const account1 = privateKeyToAccount(("0x" + privateKey1.toString()) as `0x${string}`)
-            const client1 = createWalletClient({
-              account: account1,
-              chain: network,
-              transport: http()
-            })
-            const account2 = privateKeyToAccount(("0x" + privateKey2.toString()) as `0x${string}`)
-            const client2 = createWalletClient({
-              account: account2,
-              chain: network,
-              transport: http()
-            })
-            // continue impl from https://github.com/paulmillr/noble-secp256k1/blob/main/index.js#L213
-
-
+            // Probably some cryptography issue here
+            //const privateKey2 = BigInt(hashedR) % CURVE.n;
+            //const spendingPrivateKey = etc.hashToPrivateKey(`0x` + sig1)
+            //const viewingPrivateKey = toPriv(privateKey2)
+            const spendingPublicKey = getPublicKey(hashedV.slice(2), true)
+            const viewingPublicKey = getPublicKey(hashedR.slice(2), true)
+            return {
+              spendingPrivateKey: hashedV,
+              spendingPublicKey: etc.bytesToHex(spendingPublicKey),
+              viewingPrivateKey: hashedR,
+              viewingPublicKey: etc.bytesToHex(viewingPublicKey)
+            }
 }

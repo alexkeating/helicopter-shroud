@@ -5,6 +5,7 @@ import { prepareWriteContract, writeContract } from '@wagmi/core'
 import { parseAbi } from 'viem';
 
 import {Erc6538Registry, Erc5564Announcer} from "./../constants"
+import {generateKeys} from "./../lib/stealth-address-utils/generateStealthMetaAddress"
 
 
 const STEALTH_REGISTRY_ABI = [
@@ -24,34 +25,41 @@ const Main = () => {
       console.log(Erc6538Registry);
       // register stealth keys
 
-      const config = await prepareWriteContract({
-         address: Erc6538Registry,
-         abi: parseAbi(STEALTH_REGISTRY_ABI),
-         functionName: 'registerKeys',
-         args: [1, data],
-       })
-       console.log(config)
-       const { hash } = await writeContract(config)
-       console.log(hash)
+      // This should happen after registration
+      // const config = await prepareWriteContract({
+      //    address: Erc6538Registry,
+      //    abi: parseAbi(STEALTH_REGISTRY_ABI),
+      //    functionName: 'registerKeys',
+      //    args: [1, data],
+      //  })
+      //  console.log(config)
+      //  const { hash } = await writeContract(config)
+      //  console.log(hash)
     }
   })
 
+  // This shouldn't exist yet
   // read if meta address exists
-  const { data: stealthMetaAddress, isError: stealthAddressIsError, isLoading: stealthMetaAddressIsLoading, error: errorL } = useContractRead({
-   address: Erc6538Registry,
-   abi: parseAbi(STEALTH_REGISTRY_ABI),
-   functionName: 'stealthMetaAddressOf',
-   args: [address, 1]
-  })
-  console.log(stealthMetaAddress)
-  console.log(stealthAddressIsError)
-  console.log(errorL)
-  console.log(stealthMetaAddressIsLoading)
+  //const { data: stealthMetaAddress, isError: stealthAddressIsError, isLoading: stealthMetaAddressIsLoading, error: errorL } = useContractRead({
+  // address: Erc6538Registry,
+  // abi: parseAbi(STEALTH_REGISTRY_ABI),
+  // functionName: 'stealthMetaAddressOf',
+  // args: [address, 1]
+  //})
+  const keys = generateKeys(data);
+  console.log(keys)
+
+  // Next functionality
+  // 1. Build merkle claim tree
+  // 2. Emit an announcement without a proof
+  //    - view tag should be a 1 byte has of a key
+  //    - metadata will only have amount
+  //    - Once announcements are emitted we will parse and claim using a relayer
 
   return (
     <div>
       <ConnectButton />
-      { !stealthMetaAddress && !stealthMetaAddressIsLoading ? (
+      { !keys?.spendingPublicKey ? (
         <>
       <Heading as='h4' size='md'>Msg to sign:</Heading>
       <Text fontSize='md'>{Msg}</Text>
@@ -59,7 +67,7 @@ const Main = () => {
       </>
       ) : <><Heading as='h4' size='md'>Stealth meta address</Heading>
       <Text fontSize='md'>
-        {stealthMetaAddress as string}
+        {`st:eth:${keys?.spendingPublicKey}${keys?.viewingPublicKey.slice(2,)}` as string}
       </Text></>
       }
 
