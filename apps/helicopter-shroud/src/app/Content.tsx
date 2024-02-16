@@ -7,6 +7,7 @@ import { parseAbi } from 'viem';
 
 import {Erc6538Registry, Erc5564Announcer} from "./../constants"
 import {generateKeys, generateStealthAddress} from "./../lib/stealth-address-utils/generateStealthMetaAddress"
+import AccountTree from "./../lib/merkle-distributor/accountTree"
 
 
 const STEALTH_REGISTRY_ABI = [
@@ -48,11 +49,13 @@ const Main = () => {
 
   // Claim will be a array with amounts listed in json format
   let [claims, setClaims] = useState("")
+  let [accountTree, setAccountTree] = useState()
   const generateMerkleTree = useCallback(async () => {
 
         console.log(claims)
     const claimObjects: Claim[] = JSON.parse(claims)
     const metaAddresses = await getRegisteredStealthMetaAddress(claimObjects)
+    const stealthClaimObjects = []
     // TODO: we assume equal size for now
     for (const [i, claimObj] of claimObjects.entries()) {
       // 1. generate random number
@@ -60,6 +63,7 @@ const Main = () => {
       while (amount > 0) {
         // 1. generate stealth address
         const x = generateStealthAddress(`st:eth:${metaAddresses[i].result}`)
+        stealthClaimObjects.push({account: x.stealthAddress, amount: claimObj.amount})
         console.log("Stealth address")
         console.log(x)
         // 2. add to internal merkle list
@@ -67,7 +71,7 @@ const Main = () => {
         amount -= MAX_AMOUNT; // weird bigInt stuff probably
       }
     }
-
+    setAccountTree(new AccountTree(stealthClaimObjects))
   }, [claims])
 
   const getRegisteredStealthMetaAddress = async (claims: Claim[]) => {
@@ -124,6 +128,13 @@ const Main = () => {
         <Heading as='h4' size='md'>Create airdrop</Heading>
         <Textarea value={claims} onChange={(e) => {setClaims(e.target.value)}}placeholder="Comma delimited list of addresses" />
         <Button type="submit" onClick={generateMerkleTree}>Submit</Button>
+        {accountTree &&
+        (<><Heading as='h4' size='md'>Merkle Root</Heading>
+        <Text fontSize='md'>
+          {accountTree.getHexRoot()}
+        </Text>
+        </>)
+        }
       </>
       }
 

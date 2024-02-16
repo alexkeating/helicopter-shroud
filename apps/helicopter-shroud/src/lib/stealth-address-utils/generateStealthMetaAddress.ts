@@ -111,6 +111,8 @@ export const generateStealthAddress = (stealthMetaAddress: string) => {
   const R_pubkey_view = ProjectivePoint.fromHex(USER.slice(75,));
   const ephemeralPrivateKey = randomPrivateKey();
   const ephemeralPublicKey = getPublicKey(ephemeralPrivateKey, true);
+  console.log('USER', ephemeralPrivateKey.toString(16));
+  console.log('USER', R_pubkey_view.toHex());
   const sharedSecret = getSharedSecret(ephemeralPrivateKey.toString(16), R_pubkey_view.toHex());
   // console.log('View tag:', bytesToHex(sharedSecret));
   const hashedSharedSecret = keccak256(sharedSecret);

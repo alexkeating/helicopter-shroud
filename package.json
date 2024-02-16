@@ -10,6 +10,8 @@
     "@noble/secp256k1": "^2.0.0",
     "@rainbow-me/rainbowkit": "^1.3.6",
     "@tanstack/react-query": "^5.20.1",
+    "ethereumjs-util": "^7.1.5",
+    "ethers": "v5",
     "framer-motion": "^11.0.3",
     "js-sha3": "^0.9.3",
     "react": "18.2.0",
