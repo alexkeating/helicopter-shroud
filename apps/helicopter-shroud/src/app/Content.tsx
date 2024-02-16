@@ -1,18 +1,23 @@
-import {useCallback, useState} from "react"
-import { Button, Heading, Textarea, Text } from '@chakra-ui/react'
+import {useEffect, useCallback, useState} from "react"
+import { Button, Input, Heading, Textarea, Text } from '@chakra-ui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, usePrepareContractWrite, useContractWrite, useContractRead, useNetwork, useSignMessage } from 'wagmi'
+import { useAccount, usePrepareContractWrite, useContractWrite, useContractRead, useNetwork, useSignMessage, useWalletClient } from 'wagmi'
 import { readContracts, prepareWriteContract, writeContract } from '@wagmi/core'
 import { parseAbi } from 'viem';
 
-import {Erc6538Registry, Erc5564Announcer} from "./../constants"
+import {Erc6538Registry, Erc5564Announcer, MerkleDistributorDeployer} from "./../constants"
 import {generateKeys, generateStealthAddress} from "./../lib/stealth-address-utils/generateStealthMetaAddress"
 import AccountTree from "./../lib/merkle-distributor/accountTree"
+
 
 
 const STEALTH_REGISTRY_ABI = [
   "function registerKeys(uint256 schemeId, bytes calldata stealthMetaAddress) external",
   "function stealthMetaAddressOf(address registrant, uint256 schemeId) external view returns (bytes)"
+]
+
+const MERKLE_DISTRIBUTOR_DEPLOYER = [
+  "function deploy(address _token, bytes32 _merkleRoot) external returns (address)"
 ]
 
 type Claim = {
@@ -25,10 +30,11 @@ const Main = () => {
   const Msg = 'I want to login into my stealth wallet.'
   const { address } = useAccount()
   const { chain } = useNetwork()
+  // TODO THis may not be loaded
+  const { data: walletClient } = useWalletClient()
 
-  const { data, isError, isLoading, isSuccess, signMessage, error } = useSignMessage({
-    message: Msg,
-    onSuccess: async (data) => {
+
+  const { data, isError, isLoading, isSuccess, signMessage, error } = useSignMessage({ message: Msg, onSuccess: async (data) => {
       console.log(data);
       console.log(Erc6538Registry);
     }
@@ -49,10 +55,12 @@ const Main = () => {
 
   // Claim will be a array with amounts listed in json format
   let [claims, setClaims] = useState("")
+  let [tokenAddress, setTokenAddress] = useState("")
   let [accountTree, setAccountTree] = useState()
+
   const generateMerkleTree = useCallback(async () => {
 
-        console.log(claims)
+    console.log(claims)
     const claimObjects: Claim[] = JSON.parse(claims)
     const metaAddresses = await getRegisteredStealthMetaAddress(claimObjects)
     const stealthClaimObjects = []
@@ -91,6 +99,37 @@ const Main = () => {
     console.log(data)
     return data
   }
+  /// Deploy distributor code
+  //  The relayer will claim on your behalf using a
+  //  signature for a fee.
+  // register stealth keys
+  const { data: prepareData, config: deployConfig } = usePrepareContractWrite({
+    address: MerkleDistributorDeployer,
+    abi: parseAbi(MERKLE_DISTRIBUTOR_DEPLOYER),
+    functionName: 'deploy',
+    args: [tokenAddress, accountTree ? accountTree.getHexRoot() : ""], // token address will be provided
+     onSuccess(data) {
+     }
+  })
+  const {data: deployData, isSuccess: deployIsSuccess, isLoading: deployIsLoading, write: deployWrite } = useContractWrite(deployConfig)
+  useEffect(() => {
+    if (!prepareData?.result || !deployIsSuccess) return
+     const existingDistributors = window.localStorage.getItem("distributors")
+      if (!existingDistributors) {
+        window.localStorage.setItem("distributors", JSON.stringify([{address: prepareData.result}]))
+        return
+      }
+      const existingDistributorsParsed = JSON.parse(existingDistributors)
+      for (const distributor of existingDistributorsParsed) {
+        if (distributor.address === prepareData.result) return
+      }
+      window.localStorage.setItem("distributors", JSON.stringify([{address: prepareData.result}, ...existingDistributorsParsed]))
+  }, [prepareData, deployIsSuccess])
+  console.log(deployData)
+  console.log(prepareData)
+  console.log(window.localStorage.getItem("distributors"))
+
+
   /// Claim state end
 
   // This shouldn't exist yet
@@ -133,6 +172,9 @@ const Main = () => {
         <Text fontSize='md'>
           {accountTree.getHexRoot()}
         </Text>
+        <Heading as='h4' size='md'>Token Address</Heading>
+        <Input onChange={(e) => {setTokenAddress(e.target.value)}}/>
+        <Button onClick={deployWrite}>Deploy Distributor</Button>
         </>)
         }
       </>

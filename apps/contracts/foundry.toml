@@ -1,13 +1,19 @@
 [profile.default]
-evm_version = "paris"
-optimizer = true
-remappings = ["stealth-address-erc-contracts/=lib/stealth-address-erc-contracts/src"]
-optimizer_runs = 10_000_000
-solc_version = "0.8.23"
-verbosity = 3
-fs_permissions = [{ access = "read-write", path = "./"},{ access = "read-write", path = "/tmp/"}]
-ffi = true
-libs = ["node_modules", "lib"]
+  evm_version = "paris"
+  ffi = true
+  fs_permissions = [
+    { access = "read-write", path = "./" },
+    { access = "read-write", path = "/tmp/" },
+  ]
+  libs = ["node_modules", "lib"]
+  optimizer = true
+  optimizer_runs = 10_000_000
+  remappings = [
+    "stealth-address-erc-contracts/=lib/stealth-address-erc-contracts/src",
+    "merkle-distributor/=lib/merkle-distributor/contracts",
+  ]
+  solc_version = "0.8.23"
+  verbosity = 3
 
 [profile.ci]
   fuzz = { runs = 5000 }
@@ -30,4 +36,4 @@ libs = ["node_modules", "lib"]
   tab_width = 2
   wrap_comments = true
 
-# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+  # See more config options https://github.com/foundry-rs/foundry/tree/master/config

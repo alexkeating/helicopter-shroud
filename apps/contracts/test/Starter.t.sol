@@ -94,7 +94,7 @@ contract StarterTest is Test {
     );
 
     // Copy files and create Prover.toml in /tmp directory
-    string[] memory filecreateCommand = new string[] (2);
+    string[] memory filecreateCommand = new string[](2);
     filecreateCommand[0] = "./script/createFile.sh";
     filecreateCommand[1] = _testName;
     bytes memory fileCreateResponse = vm.ffi(filecreateCommand);
@@ -107,7 +107,7 @@ contract StarterTest is Test {
     }
 
     // now generate the proof by calling the script using ffi
-    string[] memory ffi_command = new string[] (2);
+    string[] memory ffi_command = new string[](2);
     ffi_command[0] = "./script/prove.sh";
     ffi_command[1] = _testName;
     bytes memory commandResponse = vm.ffi(ffi_command);
