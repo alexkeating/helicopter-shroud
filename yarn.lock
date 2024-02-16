@@ -3208,6 +3208,7 @@ __metadata:
     eslint-plugin-react: "npm:7.32.2"
     eslint-plugin-react-hooks: "npm:4.6.0"
     framer-motion: "npm:^11.0.3"
+    js-sha3: "npm:^0.9.3"
     jsdom: "npm:~22.1.0"
     nx: "npm:^18.0.1"
     prettier: "npm:^2.6.2"
@@ -10106,6 +10107,13 @@ __metadata:
   bin:
     jiti: bin/jiti.js
   checksum: 10/005a0239e50381b5c9919f59dbab86128367bd64872f3376dbbde54b6523f41bd134bf22909e2a509e38fd87e1c22125ca255b9b6b53e7df0fedd23f737334cc
+  languageName: node
+  linkType: hard
+
+"js-sha3@npm:^0.9.3":
+  version: 0.9.3
+  resolution: "js-sha3@npm:0.9.3"
+  checksum: 10/8daacb93b18609a0dc081f2f6199b80a96df36f9975b4b9c7476ae92822e07100b9e1969fc76f4b58e703cd6175f0de7656a99cbb2335cfb554c66f988fbead5
   languageName: node
   linkType: hard
 

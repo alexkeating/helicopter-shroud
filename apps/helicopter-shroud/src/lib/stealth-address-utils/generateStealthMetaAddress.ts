@@ -38,10 +38,20 @@
 // 1. split up meta address to viewing and spending
 import { sha256, http, Chain, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { hexToBytes } from 'viem';
+import {
+  keccak256,
+  bytesToHex,
+  hexToBytes,
+} from 'viem/utils';
 
 import {
+  CURVE,
   getPublicKey,
-  etc
+  etc,
+  ProjectivePoint,
+  utils,
+  getSharedSecret
 } from '@noble/secp256k1';
 
 export const generateKeys = (signature: string) => {
@@ -56,15 +66,61 @@ export const generateKeys = (signature: string) => {
             const hashedV = sha256(("0x" + sig1) as `0x${string}`); // hashedV
             const hashedR = sha256(("0x" + sig2) as `0x${string}`);
             // Probably some cryptography issue here
-            //const privateKey2 = BigInt(hashedR) % CURVE.n;
+            const privateKey1 = `0x${(BigInt(hashedV) % CURVE.n).toString(16)}`;
+            const privateKey2 = `0x${(BigInt(hashedR) % CURVE.n).toString(16)}`;
             //const spendingPrivateKey = etc.hashToPrivateKey(`0x` + sig1)
             //const viewingPrivateKey = toPriv(privateKey2)
-            const spendingPublicKey = getPublicKey(hashedV.slice(2), true)
-            const viewingPublicKey = getPublicKey(hashedR.slice(2), true)
+            console.log("keys")
+            console.log(privateKey1)
+            console.log(privateKey2)
+            const spendingPublicKey = getPublicKey(privateKey1.slice(2), true)
+            const viewingPublicKey = getPublicKey(privateKey2.slice(2), true)
             return {
-              spendingPrivateKey: hashedV,
-              spendingPublicKey: etc.bytesToHex(spendingPublicKey),
-              viewingPrivateKey: hashedR,
-              viewingPublicKey: etc.bytesToHex(viewingPublicKey)
+              spendingPrivateKey: privateKey1,
+              spendingPublicKey: `0x${etc.bytesToHex(spendingPublicKey)}`,
+              viewingPrivateKey: privateKey2,
+              viewingPublicKey: `0x${etc.bytesToHex(viewingPublicKey)}`
             }
+}
+
+
+function randomPrivateKey() {
+  const randPrivateKey = utils.randomPrivateKey();
+  return BigInt(`${bytesToHex(randPrivateKey)}`);
+}
+
+function toEthAddress(PublicKey: `0x${string}`) {
+  var stAA = keccak256(hexToBytes(PublicKey));
+  return "0x"+stAA.slice(-40);
+}
+
+
+export const generateStealthAddress = (stealthMetaAddress: string) => {
+// https://github.com/nerolation/stealth-utils/blob/main/generateStealthAddress.js#L18
+  // 1. Get stealth meta address
+  // 2. Generate stealth address from stealth metaaddress
+  const USER = stealthMetaAddress;
+  if (!USER.startsWith("st:eth:0x")){
+    throw "Wrong address format; Address must start with `st:eth:0x...`";
+  }
+
+  const R_pubkey_spend = ProjectivePoint.fromHex(USER.slice(9,75));
+  console.log('R_pubkey_spend:', R_pubkey_spend);
+  console.log('USER', USER);
+
+  const R_pubkey_view = ProjectivePoint.fromHex(USER.slice(75,));
+  const ephemeralPrivateKey = randomPrivateKey();
+  const ephemeralPublicKey = getPublicKey(ephemeralPrivateKey, true);
+  const sharedSecret = getSharedSecret(ephemeralPrivateKey.toString(16), R_pubkey_view.toHex());
+  // console.log('View tag:', bytesToHex(sharedSecret));
+  const hashedSharedSecret = keccak256(sharedSecret);
+  const ViewTag = `0x${hashedSharedSecret.toString().substring(2, 4)}`;
+  // console.log('View tag:', ViewTag);
+  // console.log('View tag:', hashedSharedSecret);
+  const hashedSharedSecretPoint = ProjectivePoint.fromPrivateKey(hexToBytes(hashedSharedSecret));
+  //console.log('hashedSharedSecretPoint1:', hashedSharedSecretPoint);
+  const stealthPublicKey = R_pubkey_spend.add(hashedSharedSecretPoint);
+  // console.log('View tag:', stealthPublicKey.toHex());
+  const stealthAddress = toEthAddress(`0x${stealthPublicKey.toHex()}`);
+  return {"stealthAddress":stealthAddress, "ephemeralPublicKey": bytesToHex(ephemeralPublicKey), "ViewTag":ViewTag};
 }
